@@ -5,16 +5,24 @@ import sys
 
 
 logger = logging.getLogger()
-for h in logger.handlers:
-  logger.removeHandler(h)
+if (os.getenv('LOG_LEVEL') is not None):
+    log_level = os.environ['LOG_LEVEL']
+else:
+    log_level = 'INFO'
+level = logging.getLevelName(log_level)
+if not isinstance(level, int):
+    level = logging.INFO
+logger.setLevel(level)
+formatter = logging.Formatter(
+    ('[%(levelname)s]\t%(asctime)s.%(msecs)dZ\t%(aws_request_id)s\t)'
+        '%(filename)s\t%(funcname)s\t%(lineno)s\t%(message)s\n'),
+    '%y-%m-%dT%H:%M:%S'
+    )
+for handler in logger.handlers:
+    handler.setFormatter(formatter)
 
-h = logging.StreamHandler(sys.stdout)
 
-FORMAT = '%(levelname)s %(asctime)s [%(funcName)s] %(message)s'
-h.setFormatter(logging.Formatter(FORMAT))
-logger.addHandler(h)
-
-logger.setLevel(logging.DEBUG)
+logger.debug('Loading function.')
 
 
 def lambda_handler(event, context):
